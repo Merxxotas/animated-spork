@@ -3,7 +3,7 @@ const archivos = [
   "/",
   "/index.html",
   //   "purpose": "any maskable",
-  // "/error.html",
+  "/error.html",
   "/js/app.js",
   "/js/apv.js",
   "/css/bootstrap.css",
@@ -27,18 +27,31 @@ self.addEventListener("install", (e) => {
 // Activar el service worker
 self.addEventListener("activate", (e) => {
   console.log("Service worker activado");
-  console.log(e);
+  // Actualizar la PWA //
+  e.waitUntil(
+    caches.keys().then((keys) => {
+      console.log(keys);
+
+      return Promise.all(
+        keys
+          .filter((key) => key !== nombreCache)
+          .map((key) => caches.delete(key)) // borrar los demas
+      );
+    })
+  );
+  // console.log(e);
 });
 
 // Fetch events para el CSS, HTML, imagenes JS, y hasta llamados a fetch..
 self.addEventListener("fetch", (e) => {
   console.log("Fetch.. ", e);
 
-  // e.respondWith(
-  //     caches.match(e.request)
-  //         .then(respuestaCache => {
-  //             return respuestaCache || fetch(e.request);
-  //         })
-  //         .catch( () => caches.match('/error.html'))
-  // );
+  e.respondWith(
+    caches
+      .match(e.request)
+      .then((respuestaCache) => {
+        return respuestaCache; /*|| fetch(e.request);*/
+      })
+      .catch(() => caches.match("/error.html"))
+  );
 });
